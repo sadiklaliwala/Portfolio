@@ -1,0 +1,71 @@
+'use client'
+
+import { motion } from 'framer-motion'
+
+interface SkillCategory {
+  _id: string
+  category: string
+  technologies: string[]
+}
+
+const categoryIcons: Record<string, string> = {
+  Frontend: '🎨',
+  Backend: '⚙️',
+  'Tools & Others': '🛠️',
+}
+
+export default function Skills({ data }: { data: SkillCategory[] }) {
+  return (
+    <section id="skills" style={{ background: 'var(--bg-section)' }}>
+      <div className="container">
+
+        <motion.div
+          className="section-header"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <p className="section-label">// what I know</p>
+          <h2 className="section-title">Skills & Technologies</h2>
+        </motion.div>
+
+        <div className="skills-grid">
+          {data.map((skillGroup, i) => (
+            <motion.div
+              key={skillGroup._id}
+              className="skill-card"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.15 }}
+            >
+              <div className="skill-card-header">
+                <span className="skill-icon">
+                  {categoryIcons[skillGroup.category] ?? '💡'}
+                </span>
+                <h3 className="skill-category">{skillGroup.category}</h3>
+              </div>
+
+              <div className="skill-pills">
+                {skillGroup.technologies.map((tech, j) => (
+                  <motion.span
+                    key={j}
+                    className="skill-pill"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.3, delay: i * 0.1 + j * 0.05 }}
+                  >
+                    {tech}
+                  </motion.span>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+      </div>
+    </section>
+  )
+}
