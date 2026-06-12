@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FiGithub, FiExternalLink } from "react-icons/fi";
 import Image from "next/image";
 import { urlFor } from "@/sanity/lib/image";
+import Tilt from "./Tilt";
 
 interface Project {
   _id: string;
@@ -81,13 +82,13 @@ export default function Projects({ data = [] }: { data: Project[] }) {
             {filtered.map((project, i) => (
               <motion.div
                 key={project._id}
-                className="project-card"
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
                 layout
               >
+                <Tilt className="project-card">
                 {/* Image */}
                 <div className="project-image-wrapper">
                   {project.image ? (
@@ -156,6 +157,7 @@ export default function Projects({ data = [] }: { data: Project[] }) {
                     ))}
                   </div>
                 </div>
+                </Tilt>
               </motion.div>
             ))}
           </AnimatePresence>

@@ -4,5 +4,6 @@ import skill from "./skill";
 import experience from "./experience";
 import about from "./about";
 import event from "./event";
+import post from "./post";
 
-export const schemaTypes = [hero, project, skill, experience, about, event];
+export const schemaTypes = [hero, project, skill, experience, about, event, post];

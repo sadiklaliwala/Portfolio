@@ -1,7 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { TypeAnimation } from 'react-type-animation'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 
 interface HeroData {
   name: string
@@ -12,6 +14,49 @@ interface HeroData {
 
 export default function Hero({ data }: { data: HeroData }) {
   const sequence = data.taglines.flatMap(t => [t, 2000])
+  const [personalGreeting, setPersonalGreeting] = useState("")
+
+  useEffect(() => {
+    // 1. Get UTM/Referrer info
+    const params = new URLSearchParams(window.location.search)
+    const utmSource = params.get("utm_source")?.toLowerCase() || ""
+    const ref = params.get("ref")?.toLowerCase() || ""
+    const source = utmSource || ref
+
+    let sourceText = ""
+    if (source === "linkedin") {
+      sourceText = "LinkedIn network member 💼"
+    } else if (source === "github") {
+      sourceText = "GitHub explorer 🐙"
+    } else if (source === "twitter" || source === "x") {
+      sourceText = "Twitter/X friend 🐦"
+    } else if (source === "devto") {
+      sourceText = "Dev.to reader ✍️"
+    } else if (source) {
+      sourceText = `${source} visitor`
+    }
+
+    // 2. Fetch location client-side
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((geoData) => {
+        if (geoData && geoData.city && geoData.country_name) {
+          const locationText = `from ${geoData.city}, ${geoData.country_name} 🌍`
+          if (sourceText) {
+            setPersonalGreeting(`Special welcome to my ${sourceText} ${locationText}!`)
+          } else {
+            setPersonalGreeting(`Hello visitor ${locationText}! Thanks for stopping by.`)
+          }
+        } else if (sourceText) {
+          setPersonalGreeting(`Special welcome to my ${sourceText}!`)
+        }
+      })
+      .catch(() => {
+        if (sourceText) {
+          setPersonalGreeting(`Special welcome to my ${sourceText}!`)
+        }
+      })
+  }, [])
 
   return (
     <section className="hero-section">
@@ -26,6 +71,15 @@ export default function Hero({ data }: { data: HeroData }) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
+            {personalGreeting && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="personalized-greeting"
+              >
+                {personalGreeting}
+              </motion.div>
+            )}
             <p className="hero-greeting">Hi, I'm</p>
             <h1 className="hero-name">{data.name}</h1>
             <div className="hero-typewriter">
@@ -41,13 +95,16 @@ export default function Hero({ data }: { data: HeroData }) {
             </div>
             <p className="hero-subtext">{data.subtext}</p>
 
-            <div className="hero-buttons">
+            <div className="hero-buttons" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <a href="#projects" className="btn-primary">
                 View Projects
               </a>
+              <Link href="/blog" className="btn-secondary">
+                Read Blog
+              </Link>
               {data.resumeLink && (
-                <a href={data.resumeLink} target="_blank" className="btn-secondary">
-                  Download Resume
+                <a href={data.resumeLink} target="_blank" className="btn-secondary" style={{ opacity: 0.8 }}>
+                  Resume
                 </a>
               )}
             </div>
@@ -87,6 +144,44 @@ export default function Hero({ data }: { data: HeroData }) {
 }
 
 function TerminalCard({ name }: { name: string }) {
+  const [time, setTime] = useState("")
+  const [status, setStatus] = useState("")
+
+  useEffect(() => {
+    const updateClock = () => {
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: "Asia/Kolkata",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+      }
+      const kolkataTime = new Date().toLocaleString("en-US", options)
+      setTime(kolkataTime)
+
+      const currentHour = parseInt(
+        new Date().toLocaleString("en-US", {
+          timeZone: "Asia/Kolkata",
+          hour: "numeric",
+          hour12: false,
+        }),
+        10
+      )
+
+      if (currentHour >= 9 && currentHour < 18) {
+        setStatus("Coding & Building 💻")
+      } else if (currentHour >= 18 && currentHour < 23) {
+        setStatus("Learning & Experimenting 🚀")
+      } else {
+        setStatus("Sleeping & Charging batteries 😴")
+      }
+    }
+
+    updateClock()
+    const timer = setInterval(updateClock, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
   return (
     <div className="terminal">
       <div className="terminal-header">
@@ -117,6 +212,17 @@ function TerminalCard({ name }: { name: string }) {
         </div>
         <div className="terminal-output accent">
           Available for opportunities ✓
+        </div>
+
+        <div className="terminal-line mt">
+          <span className="terminal-prompt">$ </span>
+          <span className="terminal-cmd">curl -s time.api</span>
+        </div>
+        <div className="terminal-output">
+          IST Time: {time || "Loading..."}
+        </div>
+        <div className="terminal-output">
+          Activity: {status || "Loading..."}
         </div>
 
         <div className="terminal-line mt">
