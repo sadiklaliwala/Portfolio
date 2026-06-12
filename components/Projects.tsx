@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import Link from "next/link";
 import { FiGithub, FiExternalLink } from "react-icons/fi";
 import Image from "next/image";
 import { urlFor } from "@/sanity/lib/image";
@@ -15,18 +15,38 @@ interface Project {
   liveUrl: string;
   githubUrl: string;
   image: any;
+  slug?: { current: string };
+  projectType?: string;
 }
 
-export default function Projects({ data }: { data: Project[] }) {
+function getProjectTypeBadge(type?: string) {
+  if (!type) return null;
+  switch (type) {
+    case 'Solo Project':
+      return '👤 Solo Project';
+    case 'Team Project':
+      return '👥 Team Project';
+    case 'Freelance Project':
+      return '💼 Freelance Project';
+    case 'Open Source Contribution':
+      return '🌐 Open Source';
+    case 'Helped Friend':
+      return '🤝 Helped Friend';
+    default:
+      return type;
+  }
+}
+
+export default function Projects({ data = [] }: { data: Project[] }) {
   const [filter, setFilter] = useState("All");
 
   const allTechs = [
     "All",
-    ...Array.from(new Set(data.flatMap((p) => p.techStack))),
+    ...Array.from(new Set((data || []).flatMap((p) => p.techStack || []))),
   ];
 
   const filtered =
-    filter === "All" ? data : data.filter((p) => p.techStack.includes(filter));
+    filter === "All" ? data : (data || []).filter((p) => p.techStack?.includes(filter));
 
   return (
     <section id="projects" style={{ background: "var(--bg-section)" }}>
@@ -71,17 +91,21 @@ export default function Projects({ data }: { data: Project[] }) {
                 {/* Image */}
                 <div className="project-image-wrapper">
                   {project.image ? (
-                    <Image
-                      src={urlFor(project.image).width(600).height(340).url()}
-                      alt={project.title}
-                      width={600}
-                      height={340}
-                      className="project-image"
-                    />
+                    <Link href={`/projects/${project.slug?.current || '#'}`} className="project-image-link">
+                      <Image
+                        src={urlFor(project.image).width(600).height(340).url()}
+                        alt={project.title}
+                        width={600}
+                        height={340}
+                        className="project-image"
+                      />
+                    </Link>
                   ) : (
-                    <div className="project-image-placeholder">
-                      <span>{project.title[0]}</span>
-                    </div>
+                    <Link href={`/projects/${project.slug?.current || '#'}`} className="project-image-link">
+                      <div className="project-image-placeholder">
+                        <span>{project.title[0]}</span>
+                      </div>
+                    </Link>
                   )}
                   <div className="project-image-overlay">
                     <div className="project-links">
@@ -90,6 +114,7 @@ export default function Projects({ data }: { data: Project[] }) {
                           href={project.githubUrl}
                           target="_blank"
                           className="project-link"
+                          rel="noopener noreferrer"
                         >
                           <FiGithub size={18} />
                         </a>
@@ -99,6 +124,7 @@ export default function Projects({ data }: { data: Project[] }) {
                           href={project.liveUrl}
                           target="_blank"
                           className="project-link"
+                          rel="noopener noreferrer"
                         >
                           <FiExternalLink size={18} />
                         </a>
@@ -109,7 +135,18 @@ export default function Projects({ data }: { data: Project[] }) {
 
                 {/* Content */}
                 <div className="project-content">
-                  <h3 className="project-title">{project.title}</h3>
+                  {project.projectType && (
+                    <div className="project-type-badge-container">
+                      <span className="project-type-badge">
+                        {getProjectTypeBadge(project.projectType)}
+                      </span>
+                    </div>
+                  )}
+                  <h3 className="project-title">
+                    <Link href={`/projects/${project.slug?.current || '#'}`} className="project-title-link">
+                      {project.title}
+                    </Link>
+                  </h3>
                   <p className="project-desc">{project.description}</p>
                   <div className="project-techs">
                     {project.techStack?.map((tech, j) => (
