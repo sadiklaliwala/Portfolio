@@ -8,6 +8,11 @@ import {
   FiCode,
   FiLayers,
   FiMaximize2,
+  FiFolder,
+  FiFileText,
+  FiLock,
+  FiChevronDown,
+  FiChevronRight,
 } from "react-icons/fi";
 
 const DEFAULT_JSX = `// Write your React code here!
@@ -95,12 +100,232 @@ button:hover {
 }
 `;
 
+const CODE_SPOTIFY_WIDGET = `// components/SpotifyWidget.tsx
+// Renders the floating music indicator and full audio playback controls
+
+import React, { useState, useEffect } from "react";
+import { FiMusic, FiPlay, FiPause, FiChevronUp, FiExternalLink } from "react-icons/fi";
+
+export default function SpotifyWidget() {
+  const [track, setTrack] = useState({
+    isPlaying: false,
+    title: "Dil Diyan Gallan",
+    artist: "Atif Aslam",
+    albumArt: "/images/atif-aslam.jpg",
+    songUrl: "https://open.spotify.com/track/..."
+  });
+
+  useEffect(() => {
+    const pollSpotify = async () => {
+      const res = await fetch("/api/spotify");
+      const data = await res.json();
+      setTrack(data);
+    };
+    pollSpotify();
+    const interval = setInterval(pollSpotify, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="spotify-widget-container">
+      {/* Floating capsule with spinning vinyl audio equalizer... */}
+      <span className="track-title">{track.title}</span>
+      <span className="track-artist">{track.artist}</span>
+    </div>
+  );
+}`;
+
+const CODE_RADAR_CHART = `// components/RadarChart.tsx
+// Renders technical skills coordinates on responsive trigonometric SVG circles
+
+import React from "react";
+
+export default function RadarChart({ data }) {
+  const LEVEL_COUNT = 4;
+  const ANGLE_STEP = (Math.PI * 2) / data.length;
+
+  const getCoordinates = (index: number, value: number) => {
+    const angle = index * ANGLE_STEP - Math.PI / 2;
+    const r = (value / 100) * 120;
+    return {
+      x: 150 + Math.cos(angle) * r,
+      y: 150 + Math.sin(angle) * r
+    };
+  };
+
+  return (
+    <svg viewBox="0 0 300 300" className="radar-chart">
+      {/* Dynamic multi-layered coordinates rendered as custom SVG shapes... */}
+    </svg>
+  );
+}`;
+
+const CODE_INTERACTIVE_TERMINAL = `// components/InteractiveTerminal.tsx
+// Stateful terminal shell command parser and matrix rain rendering
+
+import React, { useState, useRef } from "react";
+
+export default function InteractiveTerminal() {
+  const [history, setHistory] = useState([]);
+  const [input, setInput] = useState("");
+
+  const handleRunCommand = (cmd) => {
+    // Parser for help, whoami, skills, status, time, matrix, clear...
+  };
+
+  return (
+    <div className="terminal">
+      <div className="console-prompt">$ {input}</div>
+    </div>
+  );
+}`;
+
+const CODE_SPOTIFY_ROUTE = `// app/api/spotify/route.ts
+// Proxy endpoint to handle OAuth refreshing and secure API keys
+
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  const clientId = process.env.SPOTIFY_CLIENT_ID;
+  const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
+  const refreshToken = process.env.SPOTIFY_REFRESH_TOKEN;
+
+  // Request refreshed Access Token from Spotify Accounts API...
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": \`Basic \${Buffer.from(clientId + ":" + clientSecret).toString("base64")}\`
+    },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken
+    })
+  });
+
+  const tokens = await response.json();
+
+  // Query Spotify Web API with access token...
+  return NextResponse.json({ ...trackDetails });
+}`;
+
+interface FileItem {
+  name: string;
+  path: string;
+  type: "file" | "folder";
+  isReadOnly?: boolean;
+  content?: string;
+  children?: FileItem[];
+}
+
 export default function PlaygroundPage() {
-  const [activeTab, setActiveTab] = useState<"jsx" | "css">("jsx");
+  const [selectedFile, setSelectedFile] = useState("root/App.jsx");
   const [jsxCode, setJsxCode] = useState(DEFAULT_JSX);
   const [cssCode, setCssCode] = useState(DEFAULT_CSS);
   const [iframeSrcDoc, setIframeSrcDoc] = useState("");
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const [openFolders, setOpenFolders] = useState<Record<string, boolean>>({
+    "root": true,
+    "root/app": true,
+    "root/app/api": false,
+    "root/app/api/spotify": false,
+    "root/components": true,
+  });
+
+  const EXPLORER_DATA: FileItem[] = [
+    {
+      name: "portfolio-workspace",
+      path: "root",
+      type: "folder" as const,
+      children: [
+        {
+          name: "app",
+          path: "root/app",
+          type: "folder" as const,
+          children: [
+            {
+              name: "api",
+              path: "root/app/api",
+              type: "folder" as const,
+              children: [
+                {
+                  name: "spotify",
+                  path: "root/app/api/spotify",
+                  type: "folder" as const,
+                  children: [
+                    {
+                      name: "route.ts",
+                      path: "root/app/api/spotify/route.ts",
+                      type: "file" as const,
+                      isReadOnly: true,
+                      content: CODE_SPOTIFY_ROUTE,
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              name: "playground",
+              path: "root/app/playground",
+              type: "folder" as const,
+              children: [
+                {
+                  name: "page.tsx",
+                  path: "root/app/playground/page.tsx",
+                  type: "file" as const,
+                  isReadOnly: true,
+                  content: "// Live IDE code preview you are exploring right now!",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          name: "components",
+          path: "root/components",
+          type: "folder" as const,
+          children: [
+            {
+              name: "SpotifyWidget.tsx",
+              path: "root/components/SpotifyWidget.tsx",
+              type: "file" as const,
+              isReadOnly: true,
+              content: CODE_SPOTIFY_WIDGET,
+            },
+            {
+              name: "RadarChart.tsx",
+              path: "root/components/RadarChart.tsx",
+              type: "file" as const,
+              isReadOnly: true,
+              content: CODE_RADAR_CHART,
+            },
+            {
+              name: "InteractiveTerminal.tsx",
+              path: "root/components/InteractiveTerminal.tsx",
+              type: "file" as const,
+              isReadOnly: true,
+              content: CODE_INTERACTIVE_TERMINAL,
+            },
+          ],
+        },
+        {
+          name: "App.jsx",
+          path: "root/App.jsx",
+          type: "file" as const,
+          isReadOnly: false,
+          content: jsxCode,
+        },
+        {
+          name: "index.css",
+          path: "root/index.css",
+          type: "file" as const,
+          isReadOnly: false,
+          content: cssCode,
+        },
+      ],
+    },
+  ];
 
   // Compile code into iframe template
   const compile = () => {
@@ -158,12 +383,117 @@ export default function PlaygroundPage() {
     compile();
   };
 
+  const toggleFolder = (path: string) => {
+    setOpenFolders((prev) => ({
+      ...prev,
+      [path]: !prev[path],
+    }));
+  };
+
+  const handleFileClick = (file: any) => {
+    setSelectedFile(file.path);
+  };
+
+  const getActiveFileContent = () => {
+    if (selectedFile === "root/App.jsx") return jsxCode;
+    if (selectedFile === "root/index.css") return cssCode;
+
+    // Search file data
+    const findFile = (items: FileItem[]): string => {
+      for (const item of items) {
+        if (item.path === selectedFile) return item.content || "";
+        if (item.children) {
+          const res = findFile(item.children);
+          if (res) return res;
+        }
+      }
+      return "";
+    };
+    return findFile(EXPLORER_DATA);
+  };
+
+  const handleCodeChange = (val: string) => {
+    if (selectedFile === "root/App.jsx") {
+      setJsxCode(val);
+    } else if (selectedFile === "root/index.css") {
+      setCssCode(val);
+    }
+  };
+
+  const isReadOnlyActive = selectedFile !== "root/App.jsx" && selectedFile !== "root/index.css";
+
+  const renderTree = (items: FileItem[]) => {
+    return items.map((item) => {
+      const isFolder = item.type === "folder";
+      const isOpen = openFolders[item.path];
+      const isSelected = selectedFile === item.path;
+
+      if (isFolder) {
+        return (
+          <div key={item.path} style={{ marginLeft: "10px" }}>
+            <div
+              onClick={() => toggleFolder(item.path)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 8px",
+                cursor: "pointer",
+                borderRadius: "4px",
+                fontSize: "0.82rem",
+                color: "var(--text-secondary)",
+                transition: "background 0.2s ease",
+              }}
+              className="explorer-item"
+            >
+              {isOpen ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
+              <FiFolder size={14} style={{ color: "#38bdf8" }} />
+              <span style={{ fontFamily: "JetBrains Mono, monospace" }}>{item.name}</span>
+            </div>
+            {isOpen && item.children && (
+              <div style={{ borderLeft: "1px dashed rgba(255, 255, 255, 0.08)", marginLeft: "6px" }}>
+                {renderTree(item.children)}
+              </div>
+            )}
+          </div>
+        );
+      } else {
+        return (
+          <div
+            key={item.path}
+            onClick={() => handleFileClick(item)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 8px",
+              cursor: "pointer",
+              borderRadius: "4px",
+              fontSize: "0.82rem",
+              color: isSelected ? "var(--accent)" : "var(--text-secondary)",
+              background: isSelected ? "rgba(56, 189, 248, 0.08)" : "transparent",
+              marginLeft: "10px",
+              transition: "all 0.2s ease",
+            }}
+            className="explorer-item"
+          >
+            <span style={{ width: "14px", display: "inline-flex", justifyContent: "center" }}>
+              <FiFileText size={14} style={{ color: item.isReadOnly ? "#64748b" : "#22c55e" }} />
+            </span>
+            <span style={{ flex: 1, fontFamily: "JetBrains Mono, monospace" }}>{item.name}</span>
+            {item.isReadOnly && <FiLock size={12} style={{ opacity: 0.5 }} />}
+          </div>
+        );
+      }
+    });
+  };
+
   return (
     <main
       className="min-h-screen py-16 relative z-10"
       style={{ background: "var(--bg-primary)" }}
     >
-      <div className="container" style={{ maxWidth: "1280px" }}>
+      <div className="container" style={{ maxWidth: "1440px", padding: "0 24px" }}>
         {/* Header navigation */}
         <div
           style={{
@@ -189,7 +519,7 @@ export default function PlaygroundPage() {
               ← Back to Home
             </Link>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <span
               style={{
                 fontSize: "0.85rem",
@@ -234,7 +564,7 @@ export default function PlaygroundPage() {
             className="section-title"
             style={{ fontSize: "2.4rem", marginTop: "6px", fontWeight: 700 }}
           >
-            Live Code Playground
+            Interactive Workspace & Sandbox
           </h1>
           <p
             style={{
@@ -243,23 +573,59 @@ export default function PlaygroundPage() {
               maxWidth: "800px",
             }}
           >
-            Test your ideas in a React sandbox. Write JSX components and vanilla
-            CSS to see immediate results rendered in a secured environment.
+            Explore live snapshots of real components source code directly from this repository on the explorer pane. Edit <code style={{ color: "var(--accent-green)" }}>App.jsx</code> or <code style={{ color: "var(--accent-green)" }}>index.css</code> below to see sandbox compilation results rendered instantly on the emulator.
           </p>
         </header>
 
-        {/* Split Editor Grid */}
+        {/* 3-Pane Editor Layout */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "24px",
-            height: "70vh",
-            minHeight: "550px",
+            gridTemplateColumns: "250px 1fr 1.1fr",
+            gap: "20px",
+            height: "75vh",
+            minHeight: "600px",
           }}
           className="playground-grid"
         >
-          {/* Left panel - Editors */}
+          {/* Pane 1 - Explorer Sidebar */}
+          <div
+            style={{
+              background: "var(--bg-card)",
+              border: "1px solid var(--border)",
+              borderRadius: "12px",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                background: "var(--bg-secondary)",
+                borderBottom: "1px solid var(--border)",
+                padding: "14px 16px",
+                fontSize: "0.8rem",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                fontWeight: 600,
+                color: "var(--text-secondary)",
+                fontFamily: "JetBrains Mono, monospace",
+              }}
+            >
+              Workspace Explorer
+            </div>
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                padding: "12px 6px",
+              }}
+            >
+              {renderTree(EXPLORER_DATA)}
+            </div>
+          </div>
+
+          {/* Pane 2 - Code Editor */}
           <div
             style={{
               background: "var(--bg-card)",
@@ -276,106 +642,74 @@ export default function PlaygroundPage() {
                 background: "var(--bg-secondary)",
                 borderBottom: "1px solid var(--border)",
                 display: "flex",
-                padding: "4px 8px",
+                alignItems: "center",
+                padding: "0 8px",
+                justifyContent: "space-between",
               }}
             >
-              <button
-                onClick={() => setActiveTab("jsx")}
-                style={{
-                  background:
-                    activeTab === "jsx" ? "var(--bg-card)" : "transparent",
-                  color:
-                    activeTab === "jsx"
-                      ? "var(--accent)"
-                      : "var(--text-secondary)",
-                  border: "none",
-                  borderBottom:
-                    activeTab === "jsx" ? "2px solid var(--accent)" : "none",
-                  padding: "10px 16px",
-                  cursor: "pointer",
-                  fontSize: "0.85rem",
-                  fontFamily: "JetBrains Mono, monospace",
-                  fontWeight: 600,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  borderRadius: "4px 4px 0 0",
-                }}
-              >
-                <FiCode /> App.jsx
-              </button>
-              <button
-                onClick={() => setActiveTab("css")}
-                style={{
-                  background:
-                    activeTab === "css" ? "var(--bg-card)" : "transparent",
-                  color:
-                    activeTab === "css"
-                      ? "var(--accent)"
-                      : "var(--text-secondary)",
-                  border: "none",
-                  borderBottom:
-                    activeTab === "css" ? "2px solid var(--accent)" : "none",
-                  padding: "10px 16px",
-                  cursor: "pointer",
-                  fontSize: "0.85rem",
-                  fontFamily: "JetBrains Mono, monospace",
-                  fontWeight: 600,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  borderRadius: "4px 4px 0 0",
-                }}
-              >
-                <FiLayers /> index.css
-              </button>
+              <div style={{ display: "flex" }}>
+                <div
+                  style={{
+                    background: "var(--bg-card)",
+                    color: "var(--accent)",
+                    borderBottom: "2px solid var(--accent)",
+                    padding: "10px 16px",
+                    fontSize: "0.85rem",
+                    fontFamily: "JetBrains Mono, monospace",
+                    fontWeight: 600,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <FiCode /> {selectedFile.split("/").pop()}
+                </div>
+              </div>
+              {isReadOnlyActive && (
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    background: "rgba(255, 255, 255, 0.05)",
+                    padding: "2px 8px",
+                    borderRadius: "4px",
+                    color: "var(--text-secondary)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    marginRight: "8px",
+                  }}
+                >
+                  <FiLock size={10} /> Read-only
+                </span>
+              )}
             </div>
 
-            {/* Code inputs */}
+            {/* Code Input Textarea */}
             <div style={{ flex: 1, position: "relative" }}>
-              {activeTab === "jsx" ? (
-                <textarea
-                  value={jsxCode}
-                  onChange={(e) => setJsxCode(e.target.value)}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    border: "none",
-                    outline: "none",
-                    background: "#090d16",
-                    color: "#e2e8f0",
-                    fontFamily: "JetBrains Mono, monospace",
-                    fontSize: "0.95rem",
-                    padding: "20px",
-                    resize: "none",
-                    lineHeight: "1.6",
-                  }}
-                  spellCheck={false}
-                />
-              ) : (
-                <textarea
-                  value={cssCode}
-                  onChange={(e) => setCssCode(e.target.value)}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    border: "none",
-                    outline: "none",
-                    background: "#090d16",
-                    color: "#e2e8f0",
-                    fontFamily: "JetBrains Mono, monospace",
-                    fontSize: "0.95rem",
-                    padding: "20px",
-                    resize: "none",
-                    lineHeight: "1.6",
-                  }}
-                  spellCheck={false}
-                />
-              )}
+              <textarea
+                value={getActiveFileContent()}
+                onChange={(e) => handleCodeChange(e.target.value)}
+                readOnly={isReadOnlyActive}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                  outline: "none",
+                  background: "#090d16",
+                  color: isReadOnlyActive ? "#8ba1b5" : "#e2e8f0",
+                  fontFamily: "JetBrains Mono, monospace",
+                  fontSize: "0.95rem",
+                  padding: "20px",
+                  resize: "none",
+                  lineHeight: "1.6",
+                  opacity: isReadOnlyActive ? 0.85 : 1,
+                }}
+                spellCheck={false}
+              />
             </div>
           </div>
 
-          {/* Right panel - Sandbox Preview */}
+          {/* Pane 3 - Sandbox Preview */}
           <div
             style={{
               background: "#0f172a",
@@ -386,7 +720,7 @@ export default function PlaygroundPage() {
               overflow: "hidden",
             }}
           >
-            {/* Browser-like header */}
+            {/* Browser Emulator header */}
             <div
               style={{
                 background: "var(--bg-secondary)",
@@ -397,7 +731,7 @@ export default function PlaygroundPage() {
                 gap: "12px",
               }}
             >
-              {/* Emulator Dots */}
+              {/* Dots */}
               <div style={{ display: "flex", gap: "6px" }}>
                 <span
                   style={{

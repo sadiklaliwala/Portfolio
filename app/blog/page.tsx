@@ -25,8 +25,8 @@ export default async function BlogListPage() {
   return (
     <main className="min-h-screen py-20 relative z-10" style={{ background: "var(--bg-primary)" }}>
       <div className="container" style={{ maxWidth: "800px" }}>
-        <div className="mb-12">
-          <Link href="/" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
+        <div className="mb-12" style={{ display: "flex", justifyContent: "flex-start", textAlign: "left" }}>
+          <Link href="/" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "8px", textDecoration: "none", marginLeft: "0", marginRight: "auto" }}>
             ← Back to Home
           </Link>
         </div>
