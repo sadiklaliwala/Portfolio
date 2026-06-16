@@ -13,20 +13,33 @@ interface Experience {
   description: string
 }
 
+function parseDate(dateStr: string): Date {
+  if (!dateStr) return new Date();
+  const parts = dateStr.split('/');
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // JS months are 0-indexed
+    const year = parseInt(parts[2], 10);
+    return new Date(year, month, day);
+  }
+  return new Date(dateStr);
+}
+
 function formatDate(dateStr: string) {
-  if (!dateStr) return 'Present'
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+  if (!dateStr) return 'Present';
+  if (dateStr.toLowerCase() === 'present') return 'Present';
+  const date = parseDate(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Experience({ data }: { data: Experience[] }) {
   const { t } = useLanguage();
-  const [viewMode, setViewMode] = useState<'list' | 'git'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'git'>('list');
   const sorted = [...data].sort(
-    (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-  )
+    (a, b) => parseDate(b.startDate).getTime() - parseDate(a.startDate).getTime()
+  );
 
   return (
     <section id="experience">

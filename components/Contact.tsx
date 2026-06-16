@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import emailjs from "@emailjs/browser";
 import { FiMail, FiMapPin, FiGithub, FiLinkedin, FiSend } from "react-icons/fi";
@@ -18,6 +18,7 @@ export default function Contact({ data }: { data: ContactInfo }) {
     "idle" | "sending" | "success" | "error"
   >("idle");
   const [linkedinTheme, setLinkedinTheme] = useState<"light" | "dark">("dark");
+  const badgeRef = useRef<HTMLDivElement>(null);
 
   const emailVal = data?.email || process.env.NEXT_PUBLIC_DEVELOPER_EMAIL || "sadik.laliwala@gmail.com";
   const locationVal = data?.location || "Gujarat, India";
@@ -45,6 +46,33 @@ export default function Contact({ data }: { data: ContactInfo }) {
   }, []);
 
   useEffect(() => {
+    if (badgeRef.current) {
+      badgeRef.current.innerHTML = "";
+      
+      const badgeDiv = document.createElement("div");
+      badgeDiv.className = "badge-base LI-profile-badge";
+      badgeDiv.setAttribute("data-locale", "en_US");
+      badgeDiv.setAttribute("data-size", "medium");
+      badgeDiv.setAttribute("data-theme", linkedinTheme);
+      badgeDiv.setAttribute("data-type", "VERTICAL");
+      badgeDiv.setAttribute("data-vanity", process.env.NEXT_PUBLIC_LINKEDIN_USERNAME || "sadiklaliwala");
+      badgeDiv.setAttribute("data-version", "v1");
+      
+      const anchor = document.createElement("a");
+      anchor.className = "badge-base__link LI-simple-link";
+      anchor.href = `https://in.linkedin.com/in/${process.env.NEXT_PUBLIC_LINKEDIN_USERNAME || "sadiklaliwala"}?trk=profile-badge`;
+      anchor.style.position = "absolute";
+      anchor.style.opacity = "0";
+      anchor.style.pointerEvents = "none";
+      anchor.style.width = "1px";
+      anchor.style.height = "1px";
+      anchor.style.overflow = "hidden";
+      anchor.innerText = process.env.NEXT_PUBLIC_DEVELOPER_NAME || "Sadik Laliwala";
+      
+      badgeDiv.appendChild(anchor);
+      badgeRef.current.appendChild(badgeDiv);
+    }
+
     let script = document.querySelector('script[src="https://platform.linkedin.com/badges/js/profile.js"]') as HTMLScriptElement;
     
     const runLIRender = () => {
@@ -181,26 +209,7 @@ export default function Contact({ data }: { data: ContactInfo }) {
                 <FiLinkedin size={14} />
                 <span>LinkedIn Badge</span>
               </div>
-              <div className="linkedin-badge-container">
-                <div 
-                  key={linkedinTheme}
-                  className="badge-base LI-profile-badge" 
-                  data-locale="en_US" 
-                  data-size="medium" 
-                  data-theme={linkedinTheme}
-                  data-type="VERTICAL" 
-                  data-vanity={process.env.NEXT_PUBLIC_LINKEDIN_USERNAME || "sadiklaliwala"} 
-                  data-version="v1"
-                >
-                  <a 
-                    className="badge-base__link LI-simple-link" 
-                    href={`https://in.linkedin.com/in/${process.env.NEXT_PUBLIC_LINKEDIN_USERNAME || "sadiklaliwala"}?trk=profile-badge`}
-                    style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: "1px", height: "1px", overflow: "hidden" }}
-                  >
-                    {process.env.NEXT_PUBLIC_DEVELOPER_NAME || "Sadik Laliwala"}
-                  </a>
-                </div>
-              </div>
+              <div ref={badgeRef} className="linkedin-badge-container" />
             </div>
           </motion.div>
 
