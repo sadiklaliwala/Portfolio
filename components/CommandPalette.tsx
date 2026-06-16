@@ -16,6 +16,8 @@ import {
   FiCopy,
   FiClock,
   FiExternalLink,
+  FiSliders,
+  FiTerminal,
 } from "react-icons/fi";
 
 interface ProjectLink {
@@ -64,8 +66,14 @@ export default function CommandPalette() {
 
   const copyEmail = () => {
     // We can fetch contact info or use standard email
-    navigator.clipboard.writeText("sadik.laliwala@example.com");
+    navigator.clipboard.writeText(process.env.NEXT_PUBLIC_DEVELOPER_EMAIL || "sadik.laliwala@example.com");
     alert("Email copied to clipboard! 📋");
+    setOpen(false);
+  };
+
+  const changeTheme = (theme: string) => {
+    localStorage.setItem("portfolio-theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
     setOpen(false);
   };
 
@@ -134,6 +142,17 @@ export default function CommandPalette() {
                     <span>Go to Contact</span>
                     <kbd className="cmdk-item-shortcut">C</kbd>
                   </Command.Item>
+                  <Command.Item
+                    onSelect={() => {
+                      setOpen(false);
+                      window.open("/playground", "_blank");
+                    }}
+                    className="cmdk-item"
+                  >
+                    <FiTerminal />
+                    <span>Go to Playground</span>
+                    <kbd className="cmdk-item-shortcut">G</kbd>
+                  </Command.Item>
                 </Command.Group>
 
                 {projects.length > 0 && (
@@ -154,6 +173,25 @@ export default function CommandPalette() {
                   </Command.Group>
                 )}
 
+                <Command.Group heading="UI Themes" className="cmdk-group-heading">
+                  <Command.Item onSelect={() => changeTheme("midnight")} className="cmdk-item">
+                    <FiSliders />
+                    <span>Midnight Code (Default)</span>
+                  </Command.Item>
+                  <Command.Item onSelect={() => changeTheme("matrix")} className="cmdk-item">
+                    <FiSliders />
+                    <span>Matrix Rain</span>
+                  </Command.Item>
+                  <Command.Item onSelect={() => changeTheme("cyberpunk")} className="cmdk-item">
+                    <FiSliders />
+                    <span>Cyberpunk Hack</span>
+                  </Command.Item>
+                  <Command.Item onSelect={() => changeTheme("light")} className="cmdk-item">
+                    <FiSliders />
+                    <span>Light Mode</span>
+                  </Command.Item>
+                </Command.Group>
+
                 <Command.Group heading="Actions" className="cmdk-group-heading">
                   <Command.Item onSelect={copyEmail} className="cmdk-item">
                     <FiCopy />
@@ -164,7 +202,8 @@ export default function CommandPalette() {
                 <Command.Group heading="Socials" className="cmdk-group-heading">
                   <Command.Item
                     onSelect={() => {
-                      window.open("https://github.com", "_blank");
+                      const username = process.env.NEXT_PUBLIC_GITHUB_USERNAME || "sadiklaliwala";
+                      window.open(`https://github.com/${username}`, "_blank");
                       setOpen(false);
                     }}
                     className="cmdk-item"
@@ -175,7 +214,8 @@ export default function CommandPalette() {
                   </Command.Item>
                   <Command.Item
                     onSelect={() => {
-                      window.open("https://linkedin.com", "_blank");
+                      const username = process.env.NEXT_PUBLIC_LINKEDIN_USERNAME || "sadiklaliwala";
+                      window.open(`https://linkedin.com/in/${username}`, "_blank");
                       setOpen(false);
                     }}
                     className="cmdk-item"

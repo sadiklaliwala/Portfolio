@@ -3,8 +3,10 @@ import About from "@/components/About";
 import { client } from "@/sanity/lib/client";
 import Skills from "@/components/Skills";
 import Projects from "@/components/Projects";
+import GitHubActivity from "@/components/GitHubActivity";
 import Events from "@/components/Events";
 import Experience from "@/components/Experience";
+import PerformanceDashboard from "@/components/PerformanceDashboard";
 import Contact from "@/components/Contact";
 
 export default async function Home() {
@@ -31,10 +33,12 @@ export default async function Home() {
     <main>
       <Hero data={hero} />
       <About data={about} />
+      <Experience data={experience} />
       <Skills data={skills} />
       <Projects data={projects} />
+      <GitHubActivity />
       <Events data={events} />
-      <Experience data={experience} />
+      <PerformanceDashboard />
       <Contact data={contact} />
     </main>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import emailjs from "@emailjs/browser";
 import { FiMail, FiMapPin, FiGithub, FiLinkedin, FiSend } from "react-icons/fi";
@@ -17,6 +17,59 @@ export default function Contact({ data }: { data: ContactInfo }) {
   const [status, setStatus] = useState<
     "idle" | "sending" | "success" | "error"
   >("idle");
+  const [linkedinTheme, setLinkedinTheme] = useState<"light" | "dark">("dark");
+
+  const emailVal = data?.email || process.env.NEXT_PUBLIC_DEVELOPER_EMAIL || "sadik.laliwala@gmail.com";
+  const locationVal = data?.location || "Gujarat, India";
+  const githubVal = data?.github || (process.env.NEXT_PUBLIC_GITHUB_USERNAME ? `https://github.com/${process.env.NEXT_PUBLIC_GITHUB_USERNAME}` : "https://github.com/sadiklaliwala");
+  const linkedinVal = data?.linkedin || (process.env.NEXT_PUBLIC_LINKEDIN_USERNAME ? `https://linkedin.com/in/${process.env.NEXT_PUBLIC_LINKEDIN_USERNAME}` : "https://linkedin.com/in/sadiklaliwala");
+
+  useEffect(() => {
+    const getTheme = () => {
+      const theme = document.documentElement.getAttribute("data-theme") || "midnight";
+      return theme === "light" ? "light" : "dark";
+    };
+
+    setLinkedinTheme(getTheme());
+
+    const observer = new MutationObserver(() => {
+      setLinkedinTheme(getTheme());
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    let script = document.querySelector('script[src="https://platform.linkedin.com/badges/js/profile.js"]') as HTMLScriptElement;
+    
+    const runLIRender = () => {
+      if (typeof window !== "undefined" && (window as any).LIRenderAll) {
+        try {
+          (window as any).LIRenderAll();
+        } catch (e) {}
+      }
+    };
+
+    if (!script) {
+      script = document.createElement("script");
+      script.src = "https://platform.linkedin.com/badges/js/profile.js";
+      script.async = true;
+      script.defer = true;
+      script.type = "text/javascript";
+      script.onload = () => {
+        setTimeout(runLIRender, 100);
+      };
+      document.body.appendChild(script);
+    } else {
+      const timer = setTimeout(runLIRender, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [linkedinTheme]);
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -76,49 +129,78 @@ export default function Contact({ data }: { data: ContactInfo }) {
             </p>
 
             <div className="contact-details">
-              {data?.email && (
-                <a href={`mailto:${data.email}`} className="contact-detail">
+              {emailVal && (
+                <a href={`mailto:${emailVal}`} className="contact-detail">
                   <div className="contact-detail-icon">
                     <FiMail size={18} />
                   </div>
                   <div>
                     <p className="contact-detail-label">Email</p>
-                    <p className="contact-detail-value">{data.email}</p>
+                    <p className="contact-detail-value">{emailVal}</p>
                   </div>
                 </a>
               )}
-              {data?.location && (
+              {locationVal && (
                 <div className="contact-detail">
                   <div className="contact-detail-icon">
                     <FiMapPin size={18} />
                   </div>
                   <div>
                     <p className="contact-detail-label">Location</p>
-                    <p className="contact-detail-value">{data.location}</p>
+                    <p className="contact-detail-value">{locationVal}</p>
                   </div>
                 </div>
               )}
             </div>
 
             <div className="contact-socials">
-              {data?.github && (
+              {githubVal && (
                 <a
-                  href={data.github}
+                  href={githubVal}
                   target="_blank"
                   className="contact-social"
+                  aria-label="GitHub Profile"
                 >
                   <FiGithub size={20} />
                 </a>
               )}
-              {data?.linkedin && (
+              {linkedinVal && (
                 <a
-                  href={data.linkedin}
+                  href={linkedinVal}
                   target="_blank"
                   className="contact-social"
+                  aria-label="LinkedIn Profile"
                 >
                   <FiLinkedin size={20} />
                 </a>
               )}
+            </div>
+
+            <div className="linkedin-badge-card">
+              <div className="linkedin-badge-title">
+                <FiLinkedin size={14} />
+                <span>LinkedIn Badge</span>
+              </div>
+              <div className="linkedin-badge-container">
+                <div 
+                  key={linkedinTheme}
+                  className="badge-base LI-profile-badge" 
+                  data-locale="en_US" 
+                  data-size="medium" 
+                  data-theme={linkedinTheme}
+                  data-type="VERTICAL" 
+                  data-vanity={process.env.NEXT_PUBLIC_LINKEDIN_USERNAME || "sadiklaliwala"} 
+                  data-version="v1"
+                >
+                  <a 
+                    className="badge-base__link LI-simple-link" 
+                    href={`https://in.linkedin.com/in/${process.env.NEXT_PUBLIC_LINKEDIN_USERNAME || "sadiklaliwala"}?trk=profile-badge`}
+                    style={{ position: "absolute", opacity: 0, pointerEvents: "none", width: "1px", height: "1px", overflow: "hidden" }}
+                  >
+                    {process.env.NEXT_PUBLIC_DEVELOPER_NAME || "Sadik Laliwala"}
+                  </a>
+                </div>
+              </div>
             </div>
           </motion.div>
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { TypeAnimation } from 'react-type-animation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useAchievements } from '@/context/AchievementContext'
 
 interface HeroData {
   name: string
@@ -12,9 +13,50 @@ interface HeroData {
   resumeLink: string
 }
 
+function getWeatherGreeting(code: number, temp: number): string {
+  let condition = "have a wonderful day";
+  let icon = "☀️";
+
+  if (code === 0) {
+    condition = "it's currently sunny";
+    icon = "☀️";
+  } else if ([1, 2, 3].includes(code)) {
+    condition = "it's currently partly cloudy";
+    icon = "⛅";
+  } else if ([45, 48].includes(code)) {
+    condition = "it's currently foggy";
+    icon = "🌫️";
+  } else if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) {
+    condition = "it's currently raining—grab a warm coffee and stay dry";
+    icon = "🌧️";
+  } else if ([71, 73, 75, 77, 85, 86].includes(code)) {
+    condition = "it's currently snowing—stay warm out there";
+    icon = "❄️";
+  } else if ([95, 96, 99].includes(code)) {
+    condition = "there's a thunderstorm—stay safe indoors";
+    icon = "⛈️";
+  }
+
+  return `It's currently ${condition} (${temp}°C) ${icon}`;
+}
+
+const getTimeOfDayGreeting = (): { greeting: string; icon: string } => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) {
+    return { greeting: "Good morning", icon: "🌅" };
+  } else if (hour >= 12 && hour < 17) {
+    return { greeting: "Good afternoon", icon: "🌤️" };
+  } else if (hour >= 17 && hour < 22) {
+    return { greeting: "Good evening", icon: "🌙" };
+  } else {
+    return { greeting: "Hope you're having a peaceful night", icon: "🦉" };
+  }
+};
+
 export default function Hero({ data }: { data: HeroData }) {
   const sequence = data.taglines.flatMap(t => [t, 2000])
   const [personalGreeting, setPersonalGreeting] = useState("")
+  const { unlockAchievement } = useAchievements()
 
   useEffect(() => {
     // 1. Get UTM/Referrer info
@@ -36,16 +78,57 @@ export default function Hero({ data }: { data: HeroData }) {
       sourceText = `${source} visitor`
     }
 
+    // Check for Night Owl achievement (12 AM - 5 AM local time)
+    const hour = new Date().getHours()
+    if (hour >= 0 && hour < 5) {
+      unlockAchievement("night_owl")
+    }
+
     // 2. Fetch location client-side
     fetch("https://ipapi.co/json/")
       .then((res) => res.json())
       .then((geoData) => {
         if (geoData && geoData.city && geoData.country_name) {
-          const locationText = `from ${geoData.city}, ${geoData.country_name} 🌍`
-          if (sourceText) {
-            setPersonalGreeting(`Special welcome to my ${sourceText} ${locationText}!`)
+          const timeInfo = getTimeOfDayGreeting()
+          const lat = geoData.latitude
+          const lon = geoData.longitude
+
+          if (lat && lon) {
+            fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+              .then((res) => res.json())
+              .then((weatherData) => {
+                const current = weatherData.current_weather
+                if (current) {
+                  const weatherText = getWeatherGreeting(current.weathercode, current.temperature)
+                  if (sourceText) {
+                    setPersonalGreeting(`Special welcome to my ${sourceText} from ${geoData.city}, ${geoData.country_name}! ${weatherText}!`)
+                  } else {
+                    setPersonalGreeting(`${timeInfo.greeting} visitor from ${geoData.city}, ${geoData.country_name}! ${weatherText}!`)
+                  }
+                } else {
+                  // Fallback if no current weather
+                  if (sourceText) {
+                    setPersonalGreeting(`Special welcome to my ${sourceText} from ${geoData.city}, ${geoData.country_name}! ${timeInfo.icon}`)
+                  } else {
+                    setPersonalGreeting(`${timeInfo.greeting} visitor from ${geoData.city}, ${geoData.country_name}! Thanks for stopping by ${timeInfo.icon}`)
+                  }
+                }
+              })
+              .catch(() => {
+                // Fallback on weather fetch error
+                if (sourceText) {
+                  setPersonalGreeting(`Special welcome to my ${sourceText} from ${geoData.city}, ${geoData.country_name}! ${timeInfo.icon}`)
+                } else {
+                  setPersonalGreeting(`${timeInfo.greeting} visitor from ${geoData.city}, ${geoData.country_name}! Thanks for stopping by ${timeInfo.icon}`)
+                }
+              })
           } else {
-            setPersonalGreeting(`Hello visitor ${locationText}! Thanks for stopping by.`)
+            // Fallback if no latitude/longitude
+            if (sourceText) {
+              setPersonalGreeting(`Special welcome to my ${sourceText} from ${geoData.city}, ${geoData.country_name}! ${timeInfo.icon}`)
+            } else {
+              setPersonalGreeting(`${timeInfo.greeting} visitor from ${geoData.city}, ${geoData.country_name}! Thanks for stopping by ${timeInfo.icon}`)
+            }
           }
         } else if (sourceText) {
           setPersonalGreeting(`Special welcome to my ${sourceText}!`)
@@ -152,6 +235,7 @@ function TerminalCard({ name }: { name: string }) {
   const [matrixActive, setMatrixActive] = useState(false)
   const [history, setHistory] = useState<{ command: string; output: string | string[] }[]>([])
   
+  const { unlockAchievement, incrementProgress } = useAchievements()
   const inputRef = useRef<HTMLInputElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
 
@@ -225,7 +309,8 @@ function TerminalCard({ name }: { name: string }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const cmd = input.trim().toLowerCase()
+    const args = input.trim().split(" ")
+    const cmd = args[0].toLowerCase()
     if (!cmd) return
 
     let output: string | string[] = ""
@@ -238,6 +323,7 @@ function TerminalCard({ name }: { name: string }) {
           "  skills   - List technical core skills",
           "  status   - View current learning/coding status",
           "  time     - Show current IST clock time",
+          "  theme    - Switch color themes (usage: theme [name])",
           "  matrix   - Trigger a digital rain effect",
           "  clear    - Clear terminal history",
         ]
@@ -266,9 +352,26 @@ function TerminalCard({ name }: { name: string }) {
       case "time":
         output = `Kolkata Time (IST): ${time}`
         break
+      case "theme": {
+        const themeName = args[1]?.toLowerCase()
+        if (!themeName) {
+          output = [
+            "Usage: theme [midnight | matrix | cyberpunk | light]",
+            "Example: theme matrix"
+          ]
+        } else if (["midnight", "matrix", "cyberpunk", "light"].includes(themeName)) {
+          localStorage.setItem("portfolio-theme", themeName)
+          document.documentElement.setAttribute("data-theme", themeName)
+          output = `Theme switched to '${themeName}' successfully!`
+        } else {
+          output = `Unknown theme: '${themeName}'. Available: midnight, matrix, cyberpunk, light.`
+        }
+        break
+      }
       case "matrix":
         setMatrixActive(true)
         setTimeout(() => setMatrixActive(false), 5000)
+        unlockAchievement("time_traveler")
         output = "Matrix simulation initialized for 5s..."
         break
       case "clear":
@@ -280,6 +383,7 @@ function TerminalCard({ name }: { name: string }) {
     }
 
     setHistory((prev) => [...prev, { command: input, output }])
+    incrementProgress("terminal_hacker")
     setInput("")
   }
 

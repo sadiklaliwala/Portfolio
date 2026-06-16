@@ -7,6 +7,7 @@ import { FiGithub, FiExternalLink } from "react-icons/fi";
 import Image from "next/image";
 import { urlFor } from "@/sanity/lib/image";
 import Tilt from "./Tilt";
+import { useAchievements } from "@/context/AchievementContext";
 
 interface Project {
   _id: string;
@@ -48,7 +49,10 @@ function parseTechStack(techStack?: string[]): string[] {
     .filter((tech) => tech !== "");
 }
 
+import { useLanguage } from "@/context/LanguageContext";
+
 export default function Projects({ data = [] }: { data: Project[] }) {
+  const { t } = useLanguage();
   const [filter, setFilter] = useState("All");
 
   const allTechs = [
@@ -71,8 +75,8 @@ export default function Projects({ data = [] }: { data: Project[] }) {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <p className="section-label">// what I've built</p>
-          <h2 className="section-title">Projects</h2>
+          <p className="section-label">{t("projects_label")}</p>
+          <h2 className="section-title">{t("projects_title")}</h2>
         </motion.div>
 
         {/* Filter Bar */}
@@ -103,6 +107,7 @@ export default function Projects({ data = [] }: { data: Project[] }) {
 
 function ProjectCard({ project, i }: { project: Project; i: number }) {
   const [showAllTech, setShowAllTech] = useState(false);
+  const { incrementProgress } = useAchievements();
   const techStack = parseTechStack(project.techStack);
   const displayedTech = showAllTech ? techStack : techStack.slice(0, 6);
 
@@ -188,6 +193,7 @@ function ProjectCard({ project, i }: { project: Project; i: number }) {
                   e.preventDefault();
                   e.stopPropagation();
                   setShowAllTech(true);
+                  incrementProgress("curious_mind");
                 }}
                 className="project-tech-more-btn"
               >

@@ -29,6 +29,26 @@ export default function ParticleBackground() {
     const connectionDistance = 100;
     const mouse = { x: -1000, y: -1000, active: false };
 
+    // Dynamic theme accent tracking
+    let accentRgb = "0, 212, 255";
+    const updateAccentColors = () => {
+      const computedAccentRgb = getComputedStyle(document.documentElement)
+        .getPropertyValue("--accent-rgb")
+        .trim();
+      if (computedAccentRgb) {
+        accentRgb = computedAccentRgb;
+      }
+    };
+    updateAccentColors();
+
+    const observer = new MutationObserver(() => {
+      updateAccentColors();
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
     // Initialize particles
     for (let i = 0; i < particleCount; i++) {
       particles.push({
@@ -80,7 +100,7 @@ export default function ParticleBackground() {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(0, 212, 255, 0.4)";
+        ctx.fillStyle = `rgba(${accentRgb}, 0.4)`;
         ctx.fill();
       });
 
@@ -98,7 +118,7 @@ export default function ParticleBackground() {
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = `rgba(0, 212, 255, ${alpha})`;
+            ctx.strokeStyle = `rgba(${accentRgb}, ${alpha})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -114,7 +134,7 @@ export default function ParticleBackground() {
             ctx.beginPath();
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(mouse.x, mouse.y);
-            ctx.strokeStyle = `rgba(0, 212, 255, ${alpha})`;
+            ctx.strokeStyle = `rgba(${accentRgb}, ${alpha})`;
             ctx.lineWidth = 0.8;
             ctx.stroke();
           }
@@ -130,6 +150,7 @@ export default function ParticleBackground() {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseleave", handleMouseLeave);
+      observer.disconnect();
       cancelAnimationFrame(animationFrameId);
     };
   }, []);

@@ -438,7 +438,7 @@ export default function GitTimeline() {
                 <span style={{ color: hoveredCommit.color }}>commit {hoveredCommit.hash}8e12d4d9b3a</span>
               </div>
               <div style={{ marginTop: "8px" }}>
-                <span style={{ color: "var(--text-secondary)" }}>Author:</span> {hoveredCommit.author || "Sadik Laliwala"} &lt;{hoveredCommit.email || "sadik.laliwala@gmail.com"}&gt;
+                <span style={{ color: "var(--text-secondary)" }}>Author:</span> {hoveredCommit.author || process.env.NEXT_PUBLIC_DEVELOPER_NAME || "Sadik Laliwala"} &lt;{hoveredCommit.email || process.env.NEXT_PUBLIC_DEVELOPER_EMAIL || "sadik.laliwala@gmail.com"}&gt;
               </div>
               <div>
                 <span style={{ color: "var(--text-secondary)" }}>Date:</span> {hoveredCommit.date}

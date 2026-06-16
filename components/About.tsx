@@ -5,6 +5,8 @@ import { FiMapPin, FiMail, FiGithub, FiLinkedin } from "react-icons/fi";
 import Image from "next/image";
 import { urlFor } from "@/sanity/lib/image";
 
+import { useLanguage } from "@/context/LanguageContext";
+
 interface AboutData {
   bio: string;
   location: string;
@@ -16,6 +18,15 @@ interface AboutData {
 }
 
 export default function About({ data }: { data: AboutData }) {
+  const { t } = useLanguage();
+  const developerName = process.env.NEXT_PUBLIC_DEVELOPER_NAME || "Sadik Laliwala";
+  const initials = developerName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <section id="about">
       <div className="container">
@@ -27,8 +38,8 @@ export default function About({ data }: { data: AboutData }) {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <p className="section-label">// about me</p>
-          <h2 className="section-title">Who I Am</h2>
+          <p className="section-label">{t("about_label")}</p>
+          <h2 className="section-title">{t("about_title")}</h2>
         </motion.div>
 
         <div className="about-content">
@@ -44,14 +55,14 @@ export default function About({ data }: { data: AboutData }) {
               {data.photo ? (
                 <Image
                   src={urlFor(data.photo).width(400).height(400).url()}
-                  alt="Profile"
+                  alt={`${developerName} - Full Stack Software Engineer Profile Photo`}
                   width={400}
                   height={400}
                   className="about-photo"
                 />
               ) : (
                 <div className="about-photo-placeholder">
-                  <span>SL</span>
+                  <span>{initials}</span>
                 </div>
               )}
               <div className="photo-glow" />

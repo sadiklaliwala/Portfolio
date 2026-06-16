@@ -38,8 +38,8 @@ export async function GET() {
           branch,
           message,
           date,
-          author: author || "Sadik Laliwala",
-          email: email || "sadik.laliwala@gmail.com",
+          author: author || process.env.NEXT_PUBLIC_DEVELOPER_NAME || "Sadik Laliwala",
+          email: email || process.env.NEXT_PUBLIC_DEVELOPER_EMAIL || "sadik.laliwala@gmail.com",
           details: `Commit made locally in this portfolio repository. Verified by repository logs.`,
           color,
         };
@@ -57,8 +57,8 @@ export async function GET() {
           branch: "main",
           message: "Phase 1 is Completed",
           date: "2026-06-12",
-          author: "Sadik Laliwala",
-          email: "sadik.laliwala@gmail.com",
+          author: process.env.NEXT_PUBLIC_DEVELOPER_NAME || "Sadik Laliwala",
+          email: process.env.NEXT_PUBLIC_DEVELOPER_EMAIL || "sadik.laliwala@gmail.com",
           details: "Main branch commit: Completed visual structures.",
           color: "#10b981"
         },
@@ -68,8 +68,8 @@ export async function GET() {
           branch: "feature/frontend",
           message: "Basic is Completed",
           date: "2026-06-12",
-          author: "Sadik Laliwala",
-          email: "sadik.laliwala@gmail.com",
+          author: process.env.NEXT_PUBLIC_DEVELOPER_NAME || "Sadik Laliwala",
+          email: process.env.NEXT_PUBLIC_DEVELOPER_EMAIL || "sadik.laliwala@gmail.com",
           details: "Frontend branch commit: Set up interactive cards.",
           color: "#38bdf8"
         }

@@ -19,7 +19,10 @@ function formatDate(dateStr: string) {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 }
 
+import { useLanguage } from "@/context/LanguageContext";
+
 export default function Experience({ data }: { data: Experience[] }) {
+  const { t } = useLanguage();
   const [viewMode, setViewMode] = useState<'list' | 'git'>('list')
   const sorted = [...data].sort(
     (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
@@ -38,8 +41,8 @@ export default function Experience({ data }: { data: Experience[] }) {
           style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "20px" }}
         >
           <div>
-            <p className="section-label">// where I've worked</p>
-            <h2 className="section-title" style={{ marginBottom: 0 }}>Experience</h2>
+            <p className="section-label">{t("experience_label")}</p>
+            <h2 className="section-title" style={{ marginBottom: 0 }}>{t("experience_title")}</h2>
           </div>
           
           {/* Switcher tabs */}

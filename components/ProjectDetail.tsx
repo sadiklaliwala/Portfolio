@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { FiGithub, FiExternalLink, FiArrowLeft, FiClock, FiTag, FiUser } from "react-icons/fi";
 import { urlFor } from "@/sanity/lib/image";
+import { useAchievements } from "@/context/AchievementContext";
 
 interface ProjectDetailProps {
   project: {
@@ -56,6 +58,12 @@ function parseTechStack(techStack?: string[]): string[] {
 }
 
 export default function ProjectDetail({ project }: ProjectDetailProps) {
+  const { incrementProgress } = useAchievements();
+
+  useEffect(() => {
+    incrementProgress("curious_mind");
+  }, []);
+
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0 },
