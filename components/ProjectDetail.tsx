@@ -45,6 +45,16 @@ function getProjectTypeBadge(type?: string) {
   }
 }
 
+function parseTechStack(techStack?: string[]): string[] {
+  if (!techStack || !Array.isArray(techStack)) return [];
+  return techStack
+    .flatMap((tech) => {
+      if (!tech) return [];
+      return tech.split(",").map((t) => t.trim());
+    })
+    .filter((tech) => tech !== "");
+}
+
 export default function ProjectDetail({ project }: ProjectDetailProps) {
   const fadeInUp = {
     initial: { opacity: 0, y: 30 },
@@ -205,11 +215,11 @@ export default function ProjectDetail({ project }: ProjectDetailProps) {
 
             {/* Right side: Tech Stack Sticky */}
             <div className="detail-right-sidebar">
-              {project.techStack && project.techStack.length > 0 && (
+              {project.techStack && parseTechStack(project.techStack).length > 0 && (
                 <div className="sticky-sidebar-card">
                   <h3>Technologies Used</h3>
                   <div className="sidebar-techs">
-                    {project.techStack.map((tech, i) => (
+                    {parseTechStack(project.techStack).map((tech, i) => (
                       <span key={i} className="sidebar-tech">
                         {tech}
                       </span>

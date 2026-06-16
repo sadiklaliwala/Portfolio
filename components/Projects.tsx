@@ -38,16 +38,28 @@ function getProjectTypeBadge(type?: string) {
   }
 }
 
+function parseTechStack(techStack?: string[]): string[] {
+  if (!techStack || !Array.isArray(techStack)) return [];
+  return techStack
+    .flatMap((tech) => {
+      if (!tech) return [];
+      return tech.split(",").map((t) => t.trim());
+    })
+    .filter((tech) => tech !== "");
+}
+
 export default function Projects({ data = [] }: { data: Project[] }) {
   const [filter, setFilter] = useState("All");
 
   const allTechs = [
     "All",
-    ...Array.from(new Set((data || []).flatMap((p) => p.techStack || []))),
+    ...Array.from(new Set((data || []).flatMap((p) => parseTechStack(p.techStack)))),
   ];
 
   const filtered =
-    filter === "All" ? data : (data || []).filter((p) => p.techStack?.includes(filter));
+    filter === "All"
+      ? data
+      : (data || []).filter((p) => parseTechStack(p.techStack).includes(filter));
 
   return (
     <section id="projects" style={{ background: "var(--bg-section)" }}>
@@ -65,7 +77,7 @@ export default function Projects({ data = [] }: { data: Project[] }) {
 
         {/* Filter Bar */}
         <div className="filter-bar">
-          {allTechs.slice(0, 7).map((tech) => (
+          {allTechs.map((tech) => (
             <button
               key={tech}
               className={`filter-btn ${filter === tech ? "active" : ""}`}
@@ -80,89 +92,124 @@ export default function Projects({ data = [] }: { data: Project[] }) {
         <motion.div className="projects-grid" layout>
           <AnimatePresence>
             {filtered.map((project, i) => (
-              <motion.div
-                key={project._id}
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4, delay: i * 0.1 }}
-                layout
-              >
-                <Tilt className="project-card">
-                {/* Image */}
-                <div className="project-image-wrapper">
-                  {project.image ? (
-                    <Link href={`/projects/${project.slug?.current || '#'}`} className="project-image-link">
-                      <Image
-                        src={urlFor(project.image).width(600).height(340).url()}
-                        alt={project.title}
-                        width={600}
-                        height={340}
-                        className="project-image"
-                      />
-                    </Link>
-                  ) : (
-                    <Link href={`/projects/${project.slug?.current || '#'}`} className="project-image-link">
-                      <div className="project-image-placeholder">
-                        <span>{project.title[0]}</span>
-                      </div>
-                    </Link>
-                  )}
-                  <div className="project-image-overlay">
-                    <div className="project-links">
-                      {project.githubUrl && (
-                        <a
-                          href={project.githubUrl}
-                          target="_blank"
-                          className="project-link"
-                          rel="noopener noreferrer"
-                        >
-                          <FiGithub size={18} />
-                        </a>
-                      )}
-                      {project.liveUrl && (
-                        <a
-                          href={project.liveUrl}
-                          target="_blank"
-                          className="project-link"
-                          rel="noopener noreferrer"
-                        >
-                          <FiExternalLink size={18} />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="project-content">
-                  {project.projectType && (
-                    <div className="project-type-badge-container">
-                      <span className="project-type-badge">
-                        {getProjectTypeBadge(project.projectType)}
-                      </span>
-                    </div>
-                  )}
-                  <h3 className="project-title">
-                    <Link href={`/projects/${project.slug?.current || '#'}`} className="project-title-link">
-                      {project.title}
-                    </Link>
-                  </h3>
-                  <p className="project-desc">{project.description}</p>
-                  <div className="project-techs">
-                    {project.techStack?.map((tech, j) => (
-                      <span key={j} className="project-tech">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                </Tilt>
-              </motion.div>
+              <ProjectCard key={project._id} project={project} i={i} />
             ))}
           </AnimatePresence>
         </motion.div>
       </div>
     </section>
+  );
+}
+
+function ProjectCard({ project, i }: { project: Project; i: number }) {
+  const [showAllTech, setShowAllTech] = useState(false);
+  const techStack = parseTechStack(project.techStack);
+  const displayedTech = showAllTech ? techStack : techStack.slice(0, 6);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.4, delay: i * 0.1 }}
+      layout
+    >
+      <Tilt className="project-card">
+        {/* Image */}
+        <div className="project-image-wrapper">
+          {project.image ? (
+            <Link href={`/projects/${project.slug?.current || '#'}`} className="project-image-link">
+              <Image
+                src={urlFor(project.image).width(600).height(340).url()}
+                alt={project.title}
+                width={600}
+                height={340}
+                className="project-image"
+              />
+            </Link>
+          ) : (
+            <Link href={`/projects/${project.slug?.current || '#'}`} className="project-image-link">
+              <div className="project-image-placeholder">
+                <span>{project.title[0]}</span>
+              </div>
+            </Link>
+          )}
+          <div className="project-image-overlay">
+            <div className="project-links">
+              {project.githubUrl && (
+                <a
+                  href={project.githubUrl}
+                  target="_blank"
+                  className="project-link"
+                  rel="noopener noreferrer"
+                >
+                  <FiGithub size={18} />
+                </a>
+              )}
+              {project.liveUrl && (
+                <a
+                  href={project.liveUrl}
+                  target="_blank"
+                  className="project-link"
+                  rel="noopener noreferrer"
+                >
+                  <FiExternalLink size={18} />
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="project-content">
+          {project.projectType && (
+            <div className="project-type-badge-container">
+              <span className="project-type-badge">
+                {getProjectTypeBadge(project.projectType)}
+              </span>
+            </div>
+          )}
+          <h3 className="project-title">
+            <Link href={`/projects/${project.slug?.current || '#'}`} className="project-title-link">
+              {project.title}
+            </Link>
+          </h3>
+          <p className="project-desc">{project.description}</p>
+          <div className="project-techs">
+            {displayedTech.map((tech, j) => (
+              <span key={tech + j} className="project-tech">
+                {tech}
+              </span>
+            ))}
+            {!showAllTech && techStack.length > 6 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAllTech(true);
+                }}
+                className="project-tech-more-btn"
+              >
+                +{techStack.length - 6} more
+              </button>
+            )}
+            {showAllTech && techStack.length > 6 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setShowAllTech(false);
+                }}
+                className="project-tech-more-btn less"
+              >
+                Show less
+              </button>
+            )}
+          </div>
+        </div>
+      </Tilt>
+    </motion.div>
   );
 }

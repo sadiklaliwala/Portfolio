@@ -156,6 +156,11 @@ function TerminalCard({ name }: { name: string }) {
   const bodyRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // Focus terminal input after hydration/mount
+    const timer = setTimeout(() => {
+      inputRef.current?.focus()
+    }, 100)
+
     // Fetch location
     fetch("https://ipapi.co/json/")
       .then((res) => res.json())
@@ -166,6 +171,8 @@ function TerminalCard({ name }: { name: string }) {
         }
       })
       .catch(() => {})
+
+    return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
@@ -210,8 +217,10 @@ function TerminalCard({ name }: { name: string }) {
     }
   }, [history, input])
 
-  const handleTerminalClick = () => {
-    inputRef.current?.focus()
+  const handleTerminalClick = (e: React.MouseEvent | React.TouchEvent) => {
+    if ((e.target as HTMLElement).tagName !== "A" && (e.target as HTMLElement).tagName !== "BUTTON") {
+      inputRef.current?.focus()
+    }
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -275,7 +284,12 @@ function TerminalCard({ name }: { name: string }) {
   }
 
   return (
-    <div className="terminal" onClick={handleTerminalClick} style={{ cursor: "text", position: "relative" }}>
+    <div 
+      className="terminal" 
+      onClick={handleTerminalClick} 
+      onTouchEnd={handleTerminalClick}
+      style={{ cursor: "text", position: "relative" }}
+    >
       <div className="terminal-header">
         <div className="terminal-dots">
           <span className="dot dot-red" />
@@ -364,10 +378,11 @@ function TerminalCard({ name }: { name: string }) {
               fontFamily: "JetBrains Mono, monospace",
               fontSize: "0.9rem",
               flex: 1,
+              width: "100%",
+              minWidth: "0px",
               padding: 0,
               margin: 0
             }}
-            autoFocus
             autoCapitalize="off"
             autoComplete="off"
             spellCheck={false}
